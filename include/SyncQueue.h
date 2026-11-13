@@ -3,7 +3,7 @@
 #include <cstddef>
 namespace sync {
 enum class Status { Ok, Invalid, Full, Duplicate, Missing, Conflict };
-struct Record {uint32_t id=0,version=0;int32_t value=0;bool pending=false;};
+struct Record {uint32_t id,version;int32_t value;bool pending;Record(uint32_t i=0,uint32_t v=0,int32_t x=0,bool p=false):id(i),version(v),value(x),pending(p){}};
 template<size_t Capacity> class Queue {
  public:
  static_assert(Capacity>0,"Capacity must be positive");
@@ -12,10 +12,10 @@ template<size_t Capacity> class Queue {
   for(size_t i=0;i<count_;++i)if(items_[i].id==id){
    if(version<items_[i].version)return Status::Conflict;
    if(version==items_[i].version)return Status::Duplicate;
-   items_[i]={id,version,value,true};return Status::Ok;
+   items_[i]=Record(id,version,value,true);return Status::Ok;
   }
   if(count_==Capacity)return Status::Full;
-  items_[count_++]={id,version,value,true};return Status::Ok;
+  items_[count_++]=Record(id,version,value,true);return Status::Ok;
  }
  Status acknowledge(uint32_t id,uint32_t version){
   if(!id||!version)return Status::Invalid;
